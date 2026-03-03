@@ -7,8 +7,8 @@ from analytics.service_status import calculate_utilization
 from analytics.confidence import compute_decision_score, evaluate_decision
 
 from ui.config import render_sidebar
-from ui.dashboard import render_metrics
-from ui.animation import render_animation
+from ui.scoreboard import render_scoreboard
+from ui.tycoon_animation import render_tycoon_animation
 
 st.set_page_config(page_title="Invisible Queue System", layout="wide")
 st.title("Invisible Queue System")
@@ -21,6 +21,10 @@ if "simulator" not in st.session_state:
 simulator = st.session_state.simulator
 
 if start:
+    # Create placeholders for live updates
+    simulation_container = st.empty()
+    metrics_container = st.empty()
+
     for _ in range(200):
 
         queue_length = simulator.step()
@@ -31,7 +35,10 @@ if start:
         score = compute_decision_score(waiting_time, threshold_time)
         decision = evaluate_decision(score)
 
-        render_metrics(queue_length, waiting_time, utilization, decision)
-        render_animation(queue_length)
+        with simulation_container.container(height=500, border=False):
+            render_tycoon_animation(queue_length, utilization)
+
+        with metrics_container.container():
+            render_scoreboard(queue_length, waiting_time, utilization, decision)
 
         time.sleep(1)
