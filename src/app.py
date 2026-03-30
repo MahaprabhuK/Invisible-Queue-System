@@ -1,44 +1,37 @@
 import streamlit as st
-import time
 
-from simulation.simulator import QueueSimulator
-from analytics.wait_time import calculate_waiting_time
-from analytics.service_status import calculate_utilization
-from analytics.confidence import compute_decision_score, evaluate_decision
+st.set_page_config(
+    page_title="Invisible Queue System",
+    page_icon="favicon.ico",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
-from ui.config import render_sidebar
-from ui.scoreboard import render_scoreboard
-from ui.tycoon_animation import render_tycoon_animation
+params = st.query_params
+is_viewer = params.get("viewer") == "true"
+target_page = params.get("page")
 
-st.set_page_config(page_title="Invisible Queue System", layout="wide")
-st.title("Invisible Queue System")
+if is_viewer:
+    viewer_page = st.Page("views/viewer.py", title="Queue Status")
+    pg = st.navigation([viewer_page])
+    pg.run()
+else:
+    pages = {
+        "": [
+            st.Page("views/home.py", title="Home", default=True, url_path="home"),
+        ],
+        "Tools": [
+            st.Page("views/simulator.py",    title="Simulator \u2014 V1", url_path="simulator"),
+            st.Page("views/video_upload.py", title="CV Detection \u2014 V2", url_path="cv_detection"),
+        ],
+    }
+    pg = st.navigation(pages)
 
-arrival_rate, service_rate, threshold_time, start = render_sidebar()
+    if target_page == "simulator":
+        del st.query_params["page"]
+        st.switch_page("views/simulator.py")
+    elif target_page == "cv_detection":
+        del st.query_params["page"]
+        st.switch_page("views/video_upload.py")
 
-if "simulator" not in st.session_state:
-    st.session_state.simulator = QueueSimulator(arrival_rate, service_rate)
-
-simulator = st.session_state.simulator
-
-if start:
-    # Create placeholders for live updates
-    simulation_container = st.empty()
-    metrics_container = st.empty()
-
-    for _ in range(200):
-
-        queue_length = simulator.step()
-
-        waiting_time = calculate_waiting_time(arrival_rate, service_rate)
-        utilization = calculate_utilization(arrival_rate, service_rate)
-
-        score = compute_decision_score(waiting_time, threshold_time)
-        decision = evaluate_decision(score)
-
-        with simulation_container.container(height=500, border=False):
-            render_tycoon_animation(queue_length, utilization)
-
-        with metrics_container.container():
-            render_scoreboard(queue_length, waiting_time, utilization, decision)
-
-        time.sleep(1)
+    pg.run()
