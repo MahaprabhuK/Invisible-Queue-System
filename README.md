@@ -1,3 +1,13 @@
+---
+title: Invisible Queue System
+emoji: 🚦
+colorFrom: green
+colorTo: blue
+sdk: streamlit
+sdk_version: 1.54.0
+app_file: src/app.py
+pinned: false
+---
 # Invisible Queue System
 
 A Streamlit-powered queuing theory simulation showcasing an interactive, Tycoon-style airport check-in visualization.
